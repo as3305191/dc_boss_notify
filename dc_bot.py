@@ -8,6 +8,8 @@ import threading
 # 環境變數
 TOKEN = os.getenv("DISCORD_TOKEN")
 TARGET_CHANNEL_ID = int(os.getenv("TARGET_CHANNEL_ID"))
+print(f"DISCORD_TOKEN length: {len(TOKEN) if TOKEN else 'None'}")
+print(f"TARGET_CHANNEL_ID: {TARGET_CHANNEL_ID}")
 
 if not TOKEN or not TARGET_CHANNEL_ID:
     print("❌ 請設定 DISCORD_TOKEN 和 TARGET_CHANNEL_ID")
