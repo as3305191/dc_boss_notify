@@ -1,1 +1,1 @@
-worker: python bot.py
+worker: python dc_bot.py
