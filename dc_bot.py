@@ -32,18 +32,39 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # Flask App
 app = Flask(__name__)
 
+
 @app.route("/api/send", methods=["POST"])
 def send():
-    msg = request.form.get("msg") or (request.json and request.json.get("msg"))
-    if not msg:
-        return {"error": "缺少參數 msg"}, 400
+    # 接收文字訊息（可選）
+    msg = request.form.get("msg", "")
 
+    # 接收檔案
+    file = request.files.get("file")
+    if not file:
+        return jsonify({"error": "缺少圖片檔案參數 file"}), 400
+
+    # 確認 Discord 頻道
     channel = bot.get_channel(TARGET_CHANNEL_ID)
-    if channel:
-        bot.loop.create_task(channel.send(f"📢 來自遠端訊息：{msg}"))
-        return {"ok": True, "sent": msg}
-    else:
-        return {"error": "找不到頻道"}, 500
+    if not channel:
+        return jsonify({"error": "找不到頻道"}), 500
+
+    # 將檔案轉為 discord.File 格式
+    image_data = file.read()
+    file_stream = io.BytesIO(image_data)
+    discord_file = discord.File(fp=file_stream, filename=file.filename)
+
+    # 送出圖片（與可選訊息）
+    async def send_image():
+        await channel.send(content=f"📷 來自遠端圖片訊息：{msg}" if msg else None, file=discord_file)
+
+    # 使用 run_coroutine_threadsafe 更穩定
+    import asyncio
+    future = asyncio.run_coroutine_threadsafe(send_image(), bot.loop)
+    try:
+        future.result(timeout=5)
+        return jsonify({"ok": True, "filename": file.filename})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/ping", methods=["GET"])
 def ping():
