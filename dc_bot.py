@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from flask import Flask, request ,jsonify
 import threading
+import time
 
 # 環境變數
 TOKEN = os.getenv("DISCORD_TOKEN", "").strip()
@@ -67,9 +68,10 @@ def send():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/ping", methods=["GET"])
+@app.route("/ping")
 def ping():
-    return {"status": "alive"}
+    time.sleep(2)  # 模擬一點延遲避免 Render 忽略
+    return {"status": "alive", "ts": time.time()}
 
 # 啟動 Flask 伺服器
 def run_flask():
